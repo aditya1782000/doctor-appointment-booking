@@ -1,0 +1,54 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String     @id @default(cuid())
+  firstName String     @db.VarChar(100)
+  lastName  String     @db.VarChar(100)
+  role      String
+  email     String     @unique
+  hash      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  TimeSlot  TimeSlot[]
+  Booking   Booking[]
+}
+
+model TimeSlot {
+  id        String   @id @default(cuid())
+  doctorId  String
+  doctor    User     @relation(fields: [doctorId], references: [id])
+  startTime DateTime
+  endTime   DateTime
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  Booking   Booking?
+
+  @@index([doctorId])
+}
+
+model Booking {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    User     @relation(fields: [patientId], references: [id])
+  timeSlotId String
+  timeSlot   TimeSlot @relation(fields: [timeSlotId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@unique([timeSlotId])
+}
